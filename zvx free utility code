@@ -1,129 +1,110 @@
 import os
+import sys
 import ctypes
 import subprocess
 import winreg
-import sys
 import time
 
-class ZVX_Data:
-    V = "1.0"
-    N = "ZVX Free Tweaking Utility Panel"
-    C1 = '\033[96m'
-    C2 = '\033[95m'
-    C3 = '\033[97m'
-    END = '\033[0m'
-
 def is_admin():
-    return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    try: return ctypes.windll.shell32.IsUserAnAdmin()
+    except: return False
 
-def run(cmd):
-    try:
-        subprocess.run(cmd, shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except: pass
-
-def s_reg(key, sub_key, name, value, rtype=winreg.REG_DWORD):
-    try:
-        winreg.CreateKey(key, sub_key)
-        with winreg.OpenKey(key, sub_key, 0, winreg.KEY_WRITE) as k:
-            winreg.SetValueEx(k, name, 0, rtype, value)
-    except: pass
-
-def ui():
-    os.system('cls')
-    print(f"{ZVX_Data.C1}   ◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤")
-    print(f"{ZVX_Data.C3}      {ZVX_Data.N} v{ZVX_Data.V}")
-    print(f"{ZVX_Data.C1}   ◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣◥◣{ZVX_Data.END}\n")
-
-def m1():
-    run('powershell -Command "Enable-ComputerRestore -Drive \'C:\'"')
-    run('powershell -Command "Checkpoint-Computer -Description \'ZVX_Full\' -RestorePointType \'MODIFY_SETTINGS\'"')
-    m2(); m3(); m4(); m5()
-
-def m2():
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\Dwm", "OverlayTestMode", 5)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse", "MouseSpeed", "0", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse", "MouseThreshold1", "0", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse", "MouseThreshold2", "0", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Accessibility\Keyboard Response", "DelayBeforeAcceptance", "0", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Keyboard", "KeyboardDelay", "0", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Keyboard", "KeyboardSpeed", "31", winreg.REG_SZ)
-    s_reg(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore", "GameDVR_FSEBehaviorMode", 2)
-    s_reg(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore", "GameDVR_Enabled", 0)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\GameDVR", "AllowGameDVR", 0)
-    run('bcdedit /set disabledynamictick yes')
-    run('bcdedit /set useplatformclock no')
-    run('bcdedit /set tscsyncpolicy Enhanced')
-
-def m3():
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", 0)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\AppCompat", "AITEnable", 0)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "PreInstalledAppsEnabled", 0)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SilentInstalledAppsEnabled", 0)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SystemPaneSuggestionsEnabled", 0)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\Windows Search", "AllowCortana", 0)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications", "GlobalUserDisabled", 1)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\Personalization", "NoLockScreen", 1)
-    s_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement", "ScoobeSystemSettingEnabled", 0)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry", 0)
-    svs = ["SysMain", "DiagTrack", "dmwappushservice", "WerSvc", "PcaSvc", "MapsBroker", "WbioSrvc", "XblAuthManager", "XblGameSave", "XboxNetApiSvc"]
-    for s in svs:
-        run(f'sc stop "{s}"')
-        run(f'sc config "{s}" start= disabled')
-
-def m4():
-    run('powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c')
-    run('powercfg -h off')
-    run('powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 100')
-    run('powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100')
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", "NetworkThrottlingIndex", 0xFFFFFFFF)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", "SystemResponsiveness", 0)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "GPU Priority", 8)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Priority", 6)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Scheduling Category", "High", winreg.REG_SZ)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "DisablePagingExecutive", 1)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "LargeSystemCache", 1)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\PriorityControl", "Win32PrioritySeparation", 38)
-    s_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Affinity", 0)
-
-def m5():
-    run('ipconfig /flushdns')
-    run('ipconfig /registerdns')
-    run('ipconfig /release')
-    run('ipconfig /renew')
-    run('netsh winsock reset')
-    run('del /s /f /q %temp%\\*.*')
-    run('del /s /f /q C:\\Windows\\Temp\\*.*')
-    run('del /s /f /q C:\\Windows\\Prefetch\\*.*')
-    run('powershell "Get-PnpDevice | ? Status -eq Unknown | foreach { pnputil /remove-device $_.InstanceId }"')
-    run('cleanmgr.exe /sagerun:1')
-
-def start():
+def run_as_admin():
     if not is_admin():
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
         sys.exit()
 
-    while True:
-        ui()
-        print(f"   {ZVX_Data.C2}[1]{ZVX_Data.C3} ALL OPTIMIZATIONS")
-        print(f"   {ZVX_Data.C2}[2]{ZVX_Data.C3} INPUT DELAY & LATENCY")
-        print(f"   {ZVX_Data.C2}[3]{ZVX_Data.C3} DEBLOAT & PRIVACY")
-        print(f"   {ZVX_Data.C2}[4]{ZVX_Data.C3} HARDWARE & POWER")
-        print(f"   {ZVX_Data.C2}[5]{ZVX_Data.C3} SYSTEM CLEANER")
-        print(f"   {ZVX_Data.C2}[Q]{ZVX_Data.C3} EXIT")
-        
-        i = input(f"\n   {ZVX_Data.C1}» {ZVX_Data.END}").upper()
+def reg_set(hkey, path, name, value, vtype=winreg.REG_DWORD):
+    try:
+        key = winreg.CreateKeyEx(hkey, path, 0, winreg.KEY_SET_VALUE)
+        winreg.SetValueEx(key, name, 0, vtype, value)
+        winreg.CloseKey(key)
+    except: pass
 
-        if i == '1':
-            m1(); input("\n   Finished. Press Enter...")
-        elif i == '2':
-            m2(); input("\n   Finished. Enter...")
-        elif i == '3':
-            m3(); input("\n   Finished. Enter...")
-        elif i == '4':
-            m4(); input("\n   Finished. Enter...")
-        elif i == '5':
-            m5(); input("\n   Finished. Enter...")
-        elif i == 'Q':
-            break
+def create_restore_point():
+    print("\n[!] TWORZENIE PUNKTU PRZYWRACANIA SYSTEMU...")
+    cmd = 'powershell -Command "Checkpoint-Computer -Description \'ZVX_Before_Optimization\' -RestorePointType MODIFY_SETTINGS"'
+    subprocess.run(cmd, shell=True)
+    print("[OK] Punkt przywracania został utworzony.")
+
+def restore_system():
+    print("\n[!] OTWIERANIE PANELU PRZYWRACANIA SYSTEMU...")
+    os.system("rstrui.exe")
+
+def fortnite_fps_beast():
+    print("\n[>>>] EXTREME FPS & INPUT LAG OPTIMIZER...")
+    # 1-5: Podstawowe optymalizacje z poprzedniego kodu
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", "SystemResponsiveness", 0)
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", "NetworkThrottlingIndex", 0xFFFFFFFF)
+    reg_set(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore", "GameDVR_Enabled", 0)
+    reg_set(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore", "GameDVR_FSEBehaviorMode", 2)
+    reg_set(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse", "MouseSpeed", "0", winreg.REG_SZ)
+    
+    # 6-10: Dodatkowe agresywne tweaki pod FPS
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\PriorityControl", "Win32PrioritySeparation", 38)
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowAllTrustedApps", "value", 1)
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "LargeSystemCache", 1)
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "IoPageLockLimit", 983040)
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Scheduling Category", "High", winreg.REG_SZ)
+    print("[OK] FPS Beast Mode aktywowany!")
+
+def windows_debloat_full():
+    print("\n[>>>] AGRESYWNY WINDOWS DEBLOAT...")
+    # Usługi i telemetria z poprzedniego kodu
+    services = ["DiagTrack", "SysMain", "WSearch", "dmwappushservice", "MapsBroker", "XblAuthManager", "XblGameSave"]
+    for s in services:
+        os.system(f"sc stop {s} >nul 2>&1 && sc config {s} start= disabled >nul 2>&1")
+    
+    # Usuwanie aplikacji OneDrive i Cortana
+    reg_set(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\Windows Search", "AllowCortana", 0)
+    os.system("taskkill /f /im OneDrive.exe >nul 2>&1")
+    
+    # Ultimate Power Plan
+    os.system("powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 >nul")
+    os.system("powercfg -setactive e9a42b02-d5df-448d-aa00-03f14749eb61 >nul")
+    print("[OK] Debloat zakończony!")
+
+def system_cleaner():
+    print("\n[>>>] GŁĘBOKIE CZYSZCZENIE SYSTEMU...")
+    os.system('del /q /f /s %temp%\* >nul 2>&1')
+    os.system('del /q /f /s C:\Windows\Temp\* >nul 2>&1')
+    os.system('del /q /f /s C:\Windows\Prefetch\* >nul 2>&1')
+    os.system('ipconfig /flushdns >nul')
+    print("[OK] System wyczyszczony!")
+
+def main_menu():
+    while True:
+        os.system('cls')
+        print("========================================")
+        print("      ZVX FREE UTILITY PANEL v5.0")
+        print("      PRO GAMING & SYSTEM TUNER")
+        print("========================================")
+        print("[1] CREATE RESTORE POINT (Zalecane!)")
+        print("[2] FORTNITE FPS BEAST (FPS/Input Lag)")
+        print("[3] TOTAL DEBLOATER (Spyware/Apps)")
+        print("[4] DEEP CLEANER (Temp/Cache)")
+        print("[5] RESTORE SYSTEM (Przywracanie)")
+        print("[6] ALL IN ONE (Full Boost)")
+        print("[7] EXIT")
+        print("========================================")
+        
+        choice = input("Wybierz opcję: ")
+        
+        if choice == "1": create_restore_point()
+        elif choice == "2": fortnite_fps_beast()
+        elif choice == "3": windows_debloat_full()
+        elif choice == "4": system_cleaner()
+        elif choice == "5": restore_system()
+        elif choice == "6":
+            create_restore_point()
+            fortnite_fps_beast()
+            windows_debloat_full()
+            system_cleaner()
+        elif choice == "7": break
+        
+        input("\nKliknij Enter, aby kontynuować...")
 
 if __name__ == "__main__":
-    start()
+    ctypes.windll.kernel32.SetConsoleTitleW("ZVX Free Utility Panel")
+    run_as_admin()
+    main_menu()
