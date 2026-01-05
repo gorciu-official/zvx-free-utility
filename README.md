@@ -1,4 +1,4 @@
-
+https://raw.githubusercontent.com/ZvxTweaks/zvx-free-utility/refs/heads/main/zvx_logo.png
 
 # 🚀 ZVX Free Tweaking Utility
 Profesjonalne narzędzie do optymalizacji systemu Windows, stworzone z myślą o maksymalnej wydajności i prywatności.
